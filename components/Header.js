@@ -15,9 +15,9 @@ const Header = () => {
             command: () => window.location.href = '/raw_materials'
         },
         {
-            label: 'Admin',
+            label: 'Cutting',
             icon: 'pi pi-fw pi-cog',
-            command: () => window.location.href = '/admin'
+            command: () => window.location.href = '/wh_cutting'
         },
         {
             label: 'Dashboard',

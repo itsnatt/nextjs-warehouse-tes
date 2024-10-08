@@ -14,42 +14,45 @@ export default async function handler(req, res) {
       }
       break;
 
-    case 'POST':
-      try {
-        const { name, size, merk, surat_jalan, supplier, purchase_order_code, amount, unit } = req.body;
-
-        // Validasi input
-        if (!name || !amount) {
-          return res.status(400).json({ error: 'Name and amount are required' });
+      case 'POST':
+        try {
+          const { name, size, merk, surat_jalan, supplier, purchase_order_code, amount, unit } = req.body;
+      
+          // Validasi input
+          if (!name || !amount) {
+            return res.status(400).json({ error: 'Name and amount are required' });
+          }
+      
+          // Ambil nilai increment dari sequence
+          const idResult = await pool.query('SELECT nextval(\'raw_materials_id_seq\')');
+          const idNumber = idResult.rows[0].nextval;
+      
+          // Format ID menjadi "Kxxxxxx"
+          const newId = `K${String(idNumber).padStart(6, '0')}`;
+      
+          const query = `
+            INSERT INTO raw_materials (id, name, size, merk, surat_jalan, supplier, purchase_order_code, amount, unit)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
+          const values = [newId, name, size, merk, surat_jalan, supplier, purchase_order_code, amount, unit];
+      
+          const result = await pool.query(query, values);
+      
+          // Log the insertion
+          const logQuery = `
+            INSERT INTO log_raw_materials (id, id_material, item_in, date_in)
+            VALUES ($1, $2, $3, NOW())`;
+          const logId = `LR${String(idNumber).padStart(3, '0')}`; // Format log ID
+          const logValues = [logId, newId, amount];
+      
+          await pool.query(logQuery, logValues);
+      
+          res.status(201).json(result.rows[0]);
+        } catch (error) {
+          console.error('Error creating raw material:', error);
+          res.status(500).json({ error: 'Failed to create raw material', detail: error.message });
         }
-
-        // Generate new ID
-        const idResult = await pool.query('SELECT COALESCE(MAX(CAST(SUBSTRING(id FROM 2) AS INTEGER)), 0) + 1 AS next_id FROM raw_materials');
-        const newId = `K${String(idResult.rows[0].next_id).padStart(6, '0')}`;
-
-        const query = `
-          INSERT INTO raw_materials (id, name, size, merk, surat_jalan, supplier, purchase_order_code, amount, unit)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
-        const values = [newId, name, size, merk, surat_jalan, supplier, purchase_order_code, amount, unit];
-
-        const result = await pool.query(query, values);
-
-        // Log the insertion
-        const logQuery = `
-          INSERT INTO log_raw_materials (id, id_material, item_in, date_in)
-          VALUES ($1, $2, $3, NOW())`;
-        const logId = `LR${String(idResult.rows[0].next_id).padStart(3, '0')}`;
-        const logValues = [logId, newId, amount];
-
-        await pool.query(logQuery, logValues);
-
-        res.status(201).json(result.rows[0]);
-      } catch (error) {
-        console.error('Error creating raw material:', error);
-        res.status(500).json({ error: 'Failed to create raw material', detail: error.message });
-      }
-      break;
-
+        break;
+        
     case 'PUT':
       try {
         const { id, name, size, merk, surat_jalan, supplier, purchase_order_code, amount, unit } = req.body;

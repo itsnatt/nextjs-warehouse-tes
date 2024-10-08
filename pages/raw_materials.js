@@ -60,6 +60,13 @@ export default function RawMaterials() {
         setMaterial({ id: '', name: '', size: '', merk: '', surat_jalan: '', supplier: '', purchase_order_code: '', amount: '', unit: '' });
     };
 
+
+    const deleteMaterial = async (id) => {
+        await axios.delete('/api/raw_materials/[id]', { data: { id } });
+        fetchVendors();
+    };  
+
+
     return (
         <div>
             <Header />
@@ -76,7 +83,8 @@ export default function RawMaterials() {
                 <Column body={(rowData) => (
                     <>
                         <Button icon="pi pi-pencil" onClick={() => editMaterial(rowData)} />
-                        <Button icon="pi pi-trash" className="p-button-danger" onClick={() => console.log('Delete', rowData.id)} />
+                        <Button icon="pi pi-trash" className="p-button-rounded p-button-danger" onClick={() => deleteMaterial(rowData.id)} />
+                 
                     </>
                 )} header="Actions" />
             </DataTable>
