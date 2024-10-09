@@ -20,9 +20,9 @@ const Header = () => {
             command: () => window.location.href = '/wh_cutting'
         },
         {
-            label: 'Dashboard',
+            label: 'raw_material_dash',
             icon: 'pi pi-fw pi-chart-bar',
-            command: () => window.location.href = '/dashboard'
+            command: () => window.location.href = '/raw_material_dash'
         }
     ];
 
