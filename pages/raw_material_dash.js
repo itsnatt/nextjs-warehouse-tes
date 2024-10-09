@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Chart } from 'primereact/chart';
-import Header from '../components/Header';
+import { Dropdown } from 'primereact/dropdown';
 
 const MaterialPreview = () => {
   const [data, setData] = useState([]);
   const [chartData, setChartData] = useState({});
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    name: new Date(0, i).toLocaleString('default', { month: 'long' }),
+    value: i + 1,
+  }));
 
   const fetchData = async () => {
     try {
@@ -21,9 +25,12 @@ const MaterialPreview = () => {
       const processedData = rawMaterials.map((material) => {
         const { id, name, size } = material;
   
-        // Ambil semua log untuk material ini
-        const materialLogs = logMaterials.filter(log => log.id_material === id);
-        
+        // Filter log berdasarkan bulan yang dipilih dan ID bahan
+        const materialLogs = logMaterials.filter(log => {
+          const logDate = new Date(log.date_in);
+          return log.id_material === id && logDate.getMonth() + 1 === selectedMonth; // Bandingkan dengan bulan yang dipilih
+        });
+  
         // Hitung total barang masuk dan keluar dalam sebulan
         const incoming = materialLogs.reduce((acc, log) => acc + Number(log.item_in || 0), 0);
         const outgoing = materialLogs.reduce((acc, log) => acc + Number(log.item_out || 0), 0);
@@ -36,7 +43,10 @@ const MaterialPreview = () => {
         }
   
         // Hitung stok akhir
-        const currentStock = initialStock - outgoing + incoming;
+        let currentStock = initialStock;
+        if (incoming > 0) {
+          currentStock = initialStock - outgoing + incoming;
+        }
   
         return {
           id,
@@ -50,6 +60,7 @@ const MaterialPreview = () => {
       });
   
       setData(processedData);
+      // Setup chart data
       setChartData({
         labels: processedData.map(item => item.name),
         datasets: [
@@ -72,11 +83,18 @@ const MaterialPreview = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedMonth]); // Fetch data whenever the selected month changes
+
   return (
     <div>
-         <Header />
       <h2>Preview Data Material</h2>
+      <Dropdown
+        value={selectedMonth}
+        options={months}
+        onChange={(e) => setSelectedMonth(e.value)}
+        optionLabel="name"
+        placeholder="Pilih Bulan"
+      />
       <DataTable value={data} paginator rows={10} header="Material Preview">
         <Column field="id" header="NO" />
         <Column field="name" header="NAMA BAHAN" />
@@ -86,9 +104,6 @@ const MaterialPreview = () => {
         <Column field="outgoing" header="BARANG KELUAR" />
         <Column field="currentStock" header="STOK AKHIR" />
       </DataTable>
-
-      <h3>Grafik Barang Masuk dan Keluar</h3>
-      <Chart type="bar" data={chartData} />
     </div>
   );
 };
