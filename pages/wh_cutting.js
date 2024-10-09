@@ -5,7 +5,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
+import { AutoComplete } from 'primereact/autocomplete';
 import { Toast } from 'primereact/toast';
 import Header from '../components/Header';
 
@@ -38,6 +38,22 @@ export default function Cutting() {
       toast.current.show({ severity: 'error', summary: 'Error', detail: 'Failed to fetch raw materials' });
     }
   };
+
+  const [filteredMaterials, setFilteredMaterials] = useState([]);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+
+  // Fungsi untuk mencari bahan baku
+  const searchMaterials = (event) => {
+    let results = [];
+    if (event.query.length > 0) {
+      results = rawMaterials.filter((material) => {
+        return material.name.toLowerCase().includes(event.query.toLowerCase());
+      });
+    }
+    setFilteredMaterials(results);
+  };
+
+
 
   useEffect(() => {
     fetchCuttings();
@@ -110,7 +126,7 @@ export default function Cutting() {
 
   return (
     <div>
-      <Header /> 
+      <Header />
       <Toast ref={toast} />
       <h2>Cutting Records</h2>
       <Button label="New Cutting Record" icon="pi pi-plus" onClick={openNew} />
@@ -131,15 +147,21 @@ export default function Cutting() {
       <Dialog header="Cutting Record" visible={dialogVisible} style={{ width: '50vw' }} onHide={() => setDialogVisible(false)}>
         <div className="p-fluid">
           <div className="p-field">
+
             <label htmlFor="id_rm">Raw Material</label>
-            <Dropdown
+            <AutoComplete
               id="id_rm"
-              value={cutting.id_rm}
-              options={rawMaterials}
-              onChange={(e) => setCutting({ ...cutting, id_rm: e.value.id })} // Ambil hanya ID
-              optionLabel="name"
+              value={selectedMaterial}
+              suggestions={filteredMaterials}
+              completeMethod={searchMaterials}
+              onChange={(e) => {
+                setSelectedMaterial(e.value);
+                setCutting({ ...cutting, id_rm: e.value.id }); // Ambil hanya ID
+              }}
+              field="name"
               placeholder="Select a Raw Material"
             />
+
           </div>
           <div className="p-field">
             <label htmlFor="name">Name</label>
