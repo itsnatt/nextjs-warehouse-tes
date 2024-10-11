@@ -1,6 +1,3 @@
--- Postgreee db
--- name : inventory_management
-
 -- Tabel raw_materials
 CREATE TABLE raw_materials (
     id VARCHAR(10) PRIMARY KEY,  -- ID dengan format Kxxx (K untuk raw materials)
@@ -190,9 +187,10 @@ INSERT INTO log_product (id, id_product, date_in, amount_in, date_out, amount_ou
 
 
 CREATE SEQUENCE vendor_id_seq START 1;
-CREATE SEQUENCE raw_materials_seq START 1;
-CREATE SEQUENCE log_raw_materials_seq START 1;
-
+CREATE SEQUENCE raw_materials_id_seq START 1;
+CREATE SEQUENCE log_raw_materials_id_seq START 1;
+CREATE SEQUENCE wh_cutting_id_seq START 1;
+CREATE SEQUENCE wh_sortir_id_seq start 1;
 
 
 
